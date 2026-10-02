@@ -1,0 +1,40 @@
+name: Dan May Ao Cay Tim Padlet
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_likes:
+        description: 'Số tim MỖI máy ảo sẽ cày (Ví dụ: 50 -> 5 máy sẽ được 250 tim)'
+        required: true
+        default: '50'
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Chạy cùng lúc 5 máy ảo độc lập (mỗi máy có 1 IP riêng của Microsoft)
+        vm: [1, 2, 3, 4, 5]
+
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt môi trường Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cài đặt thư viện Playwright và Chromium
+        run: |
+          pip install playwright
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Khởi động Bot trên Máy Ảo
+        env:
+          TARGET_LIKES: ${{ github.event.inputs.num_likes }}
+          VM_ID: ${{ matrix.vm }}
+        run: |
+          python padlet_cloud.py
